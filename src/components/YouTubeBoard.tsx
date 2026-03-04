@@ -30,7 +30,7 @@ const CHANNEL_ID = "UCHIFSavpHG0kGXNlZrrMVwQ";
 // Uploads playlist is always "UU" + channelId without the leading "UC"
 const UPLOADS_PLAYLIST_ID = `UU${CHANNEL_ID.slice(2)}`;
 
-// This is the static file we’ll generate in /public via GitHub Actions
+// Static file generated in /public by GitHub Actions
 const YT_JSON_URL = `${import.meta.env.BASE_URL}youtube.json`;
 
 function formatDate(iso: string) {
@@ -40,28 +40,33 @@ function formatDate(iso: string) {
 }
 
 function mapJsonToVideos(data: YouTubeJson): YouTubeVideo[] {
-  const videos: YouTubeVideo[] =
-    (data.items ?? [])
-      .map((it) => {
-        const id = (it.videoId ?? "").trim();
-        const title = (it.title ?? "").trim();
-        const publishedRaw = (it.published ?? "").trim();
-        const url = (it.link ?? (id ? `https://www.youtube.com/watch?v=${id}` : "")).trim();
-        const thumbnail = (it.thumbnail ?? (id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : "")).trim();
+  const items = Array.isArray(data?.items) ? data.items : [];
 
-        if (!id || !title) return null;
+  const videos: YouTubeVideo[] = items
+    .map((it) => {
+      const id = (it.videoId ?? "").trim();
+      const title = (it.title ?? "").trim();
+      const publishedRaw = (it.published ?? "").trim();
 
-        return {
-          id,
-          title,
-          thumbnail,
-          publishedAt: formatDate(publishedRaw),
-          publishedRaw,
-          url,
-        } satisfies YouTubeVideo;
-      })
-      .filter((v): v is YouTubeVideo => Boolean(v))
-      .sort((a, b) => (a.publishedRaw < b.publishedRaw ? 1 : a.publishedRaw > b.publishedRaw ? -1 : 0));
+      // your JSON uses `link`, not `url`
+      const url = (it.link ?? (id ? `https://www.youtube.com/watch?v=${id}` : "")).trim();
+
+      // your JSON uses `thumbnail`
+      const thumbnail = (it.thumbnail ?? (id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : "")).trim();
+
+      if (!id || !title) return null;
+
+      return {
+        id,
+        title,
+        thumbnail,
+        publishedAt: formatDate(publishedRaw),
+        publishedRaw,
+        url,
+      } satisfies YouTubeVideo;
+    })
+    .filter((v): v is YouTubeVideo => Boolean(v))
+    .sort((a, b) => (a.publishedRaw < b.publishedRaw ? 1 : a.publishedRaw > b.publishedRaw ? -1 : 0));
 
   return videos;
 }
