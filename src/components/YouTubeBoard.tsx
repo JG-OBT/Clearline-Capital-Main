@@ -11,12 +11,27 @@ type YouTubeVideo = {
   url: string;
 };
 
+type YouTubeJson = {
+  channelId: string;
+  fetchedAt: string;
+  channelTitle?: string;
+  items: Array<{
+    videoId?: string;
+    title?: string;
+    published?: string;
+    link?: string;
+    thumbnail?: string;
+  }>;
+};
+
 const CHANNEL_HANDLE_URL = "https://www.youtube.com/@Oscar_Lindhardt";
 // Confirmed channel ID for @Oscar_Lindhardt
 const CHANNEL_ID = "UCHIFSavpHG0kGXNlZrrMVwQ";
 // Uploads playlist is always "UU" + channelId without the leading "UC"
 const UPLOADS_PLAYLIST_ID = `UU${CHANNEL_ID.slice(2)}`;
-const RSS_URL = `/api/youtube-rss?channel_id=${CHANNEL_ID}`;
+
+// This is the static file we’ll generate in /public via GitHub Actions
+const YT_JSON_URL = `${import.meta.env.BASE_URL}youtube.json`;
 
 function formatDate(iso: string) {
   const d = new Date(iso);
@@ -24,41 +39,29 @@ function formatDate(iso: string) {
   return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-function parseYouTubeRss(xmlText: string): YouTubeVideo[] {
-  const parser = new DOMParser();
-  const xml = parser.parseFromString(xmlText, "text/xml");
+function mapJsonToVideos(data: YouTubeJson): YouTubeVideo[] {
+  const videos: YouTubeVideo[] =
+    (data.items ?? [])
+      .map((it) => {
+        const id = (it.videoId ?? "").trim();
+        const title = (it.title ?? "").trim();
+        const publishedRaw = (it.published ?? "").trim();
+        const url = (it.link ?? (id ? `https://www.youtube.com/watch?v=${id}` : "")).trim();
+        const thumbnail = (it.thumbnail ?? (id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : "")).trim();
 
-  // If parsing failed, browsers often include <parsererror>
-  if (xml.getElementsByTagName("parsererror").length) return [];
+        if (!id || !title) return null;
 
-  const entries = Array.from(xml.getElementsByTagName("entry"));
-
-  const videos: YouTubeVideo[] = entries
-    .map((entry) => {
-      const videoId = entry.getElementsByTagNameNS("http://www.youtube.com/xml/schemas/2015", "videoId")?.[0]
-        ?.textContent?.trim();
-
-      const title = entry.getElementsByTagName("title")?.[0]?.textContent?.trim() ?? "";
-      const publishedRaw = entry.getElementsByTagName("published")?.[0]?.textContent?.trim() ?? "";
-
-      // media:thumbnail is namespaced; easiest is to query by tag name "media:thumbnail"
-      const thumbEl = entry.getElementsByTagName("media:thumbnail")?.[0] as Element | undefined;
-      const thumbnail = thumbEl?.getAttribute("url") ?? "";
-
-      if (!videoId) return null;
-
-      return {
-        id: videoId,
-        title,
-        thumbnail,
-        publishedAt: formatDate(publishedRaw),
-        publishedRaw,
-        url: `https://www.youtube.com/watch?v=${videoId}`,
-      } satisfies YouTubeVideo;
-    })
-    .filter((v): v is YouTubeVideo => Boolean(v))
-    // Make sure newest-first regardless of feed order
-    .sort((a, b) => (a.publishedRaw < b.publishedRaw ? 1 : a.publishedRaw > b.publishedRaw ? -1 : 0));
+        return {
+          id,
+          title,
+          thumbnail,
+          publishedAt: formatDate(publishedRaw),
+          publishedRaw,
+          url,
+        } satisfies YouTubeVideo;
+      })
+      .filter((v): v is YouTubeVideo => Boolean(v))
+      .sort((a, b) => (a.publishedRaw < b.publishedRaw ? 1 : a.publishedRaw > b.publishedRaw ? -1 : 0));
 
   return videos;
 }
@@ -67,7 +70,7 @@ const YouTubeBoard = () => {
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeVideo, setActiveVideo] = useState<YouTubeVideo | null>(null);
-  const [rssBlocked, setRssBlocked] = useState(false);
+  const [feedUnavailable, setFeedUnavailable] = useState(false);
 
   const featured = useMemo(() => activeVideo ?? videos[0] ?? null, [activeVideo, videos]);
 
@@ -77,23 +80,23 @@ const YouTubeBoard = () => {
     const loadVideos = async () => {
       try {
         setLoading(true);
-        setRssBlocked(false);
+        setFeedUnavailable(false);
 
-        const res = await fetch(RSS_URL, { cache: "no-store" });
-        if (!res.ok) throw new Error(`RSS fetch failed: ${res.status}`);
+        // cache-bust so it updates after each deploy
+        const res = await fetch(`${YT_JSON_URL}?t=${Date.now()}`, { cache: "no-store" });
+        if (!res.ok) throw new Error(`youtube.json fetch failed: ${res.status}`);
 
-        const xmlText = await res.text();
-        const parsed = parseYouTubeRss(xmlText);
+        const data = (await res.json()) as YouTubeJson;
+        const parsed = mapJsonToVideos(data);
 
         if (!cancelled) {
           setVideos(parsed);
           setActiveVideo(parsed[0] ?? null);
-          if (!parsed.length) setRssBlocked(true);
+          if (!parsed.length) setFeedUnavailable(true);
         }
       } catch (err) {
-        // This will now only happen if the local proxy fails
-        console.error("YouTube RSS proxy failed:", err);
-        if (!cancelled) setRssBlocked(true);
+        console.error("YouTube JSON feed load failed:", err);
+        if (!cancelled) setFeedUnavailable(true);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -124,7 +127,7 @@ const YouTubeBoard = () => {
           <div className="flex justify-center items-center h-64">
             <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-900 rounded-full animate-spin" />
           </div>
-        ) : rssBlocked ? (
+        ) : feedUnavailable ? (
           // Fallback: guaranteed to show only this channel's uploads
           <div className="max-w-5xl mx-auto">
             <div className="rounded-sm overflow-hidden border border-slate-200 bg-white">
@@ -139,7 +142,7 @@ const YouTubeBoard = () => {
               </div>
               <div className="p-6 flex items-center justify-between flex-wrap gap-3">
                 <p className="text-sm text-slate-600">
-                  Showing the latest uploads from the channel. (Your setup blocked direct RSS fetching.)
+                  Showing the latest uploads from the channel. (Feed data isn’t available yet.)
                 </p>
                 <a
                   href={CHANNEL_HANDLE_URL}
