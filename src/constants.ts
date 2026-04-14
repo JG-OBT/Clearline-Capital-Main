@@ -5,7 +5,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     name: "Oscar Lindhardt",
     role: "Founder",
     bio: "Oscar is the Founder of Clearline Capital, leading the firm with a focus on strategic growth and long-term value creation. He also shares his thoughts and process via his popular YouTube channel.",
-    image: "https://media.licdn.com/dms/image/v2/D4E03AQGBqdNStDiR2g/profile-displayphoto-scale_400_400/B4EZitNGP.HEAw-/0/1755252549078?e=1773878400&v=beta&t=qs6FCn14xReQxFIupx_wUJ0L-SDamXZt40RRy9rf_ps",
+image: '/oscar.jpeg',
     linkedin: "https://www.linkedin.com/in/oscar-lindhardt/"
   }
 ];
