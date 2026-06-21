@@ -1,8 +1,15 @@
 {
   "channelId": "UCHIFSavpHG0kGXNlZrrMVwQ",
-  "fetchedAt": "2026-06-21T14:57:40.242Z",
+  "fetchedAt": "2026-06-21T16:51:43.710Z",
   "channelTitle": "Oscar Lindhardt",
   "items": [
+    {
+      "title": "day in the life of a private equity founder in media | PE vs media",
+      "published": "2026-06-21T15:00:00+00:00",
+      "videoId": "piJJ8LqsMos",
+      "link": "https://www.youtube.com/watch?v=piJJ8LqsMos",
+      "thumbnail": "https://i1.ytimg.com/vi/piJJ8LqsMos/hqdefault.jpg"
+    },
     {
       "title": "Why Everyone Is OBSESSED With Private Equity",
       "published": "2026-05-24T23:40:31+00:00",
@@ -100,13 +107,6 @@
       "videoId": "fYnerEjjEq8",
       "link": "https://www.youtube.com/watch?v=fYnerEjjEq8",
       "thumbnail": "https://i3.ytimg.com/vi/fYnerEjjEq8/hqdefault.jpg"
-    },
-    {
-      "title": "I dropped everything on private equity.",
-      "published": "2025-08-31T07:30:21+00:00",
-      "videoId": "BxV1I4PJgq0",
-      "link": "https://www.youtube.com/watch?v=BxV1I4PJgq0",
-      "thumbnail": "https://i3.ytimg.com/vi/BxV1I4PJgq0/hqdefault.jpg"
     }
   ]
 }
