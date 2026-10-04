@@ -1,8 +1,15 @@
 {
   "channelId": "UCHIFSavpHG0kGXNlZrrMVwQ",
-  "fetchedAt": "2026-10-04T14:10:11.393Z",
+  "fetchedAt": "2026-10-04T18:11:06.555Z",
   "channelTitle": "Oscar Lindhardt",
   "items": [
+    {
+      "title": "Inside London Private Equity firm: Final Days of Negotiating $560K/Month Business",
+      "published": "2026-10-04T15:00:15+00:00",
+      "videoId": "1IiINS2RdnQ",
+      "link": "https://www.youtube.com/watch?v=1IiINS2RdnQ",
+      "thumbnail": "https://i2.ytimg.com/vi/1IiINS2RdnQ/hqdefault.jpg"
+    },
     {
       "title": "Inside Private Equity: I Visited A $560K/Month Business in London",
       "published": "2026-09-13T15:00:07+00:00",
@@ -100,13 +107,6 @@
       "videoId": "r6UuPwZssgY",
       "link": "https://www.youtube.com/watch?v=r6UuPwZssgY",
       "thumbnail": "https://i3.ytimg.com/vi/r6UuPwZssgY/hqdefault.jpg"
-    },
-    {
-      "title": "Attempting BUYOUT of A $216K/Month Business without A finance degree",
-      "published": "2025-11-16T14:30:19+00:00",
-      "videoId": "QjPwPiIA1AM",
-      "link": "https://www.youtube.com/watch?v=QjPwPiIA1AM",
-      "thumbnail": "https://i2.ytimg.com/vi/QjPwPiIA1AM/hqdefault.jpg"
     }
   ]
 }
